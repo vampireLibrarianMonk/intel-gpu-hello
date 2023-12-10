@@ -292,12 +292,17 @@ OpenGL ES profile extensions:
 ImportError: libmkl_sycl.so.3: cannot open shared object file: No such file or directory
 ```
 
-15. Install basekit 2023.2:
+15a. Install basekit 2023.2:
 ```bash
 wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
 echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list
 apt update
 apt install intel-oneapi-runtime-openmp=2023.2.2-47 intel-oneapi-runtime-dpcpp-cpp=2023.2.2-47 intel-oneapi-runtime-mkl=2023.2.0-49495
+```
+
+15b. Via an apt list I found that the following is a version back before the breaking 2024 update:
+```bash
+sudo apt-get install intel-basekit=2023.2.0-49384 -y
 ```
 
 16. Export the following variables or save them in your .bashrc.
