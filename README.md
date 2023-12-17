@@ -284,7 +284,7 @@ Platform #0: Intel(R) OpenCL Graphics
 
 10. Get the info on that device
 ```bash
-clinfo -d 2:0
+clinfo -d 0:0
 ```
 
 11. Result (the top 10 lines of a long output):
