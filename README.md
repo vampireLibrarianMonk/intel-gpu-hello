@@ -201,7 +201,10 @@ bash Mambaforge-$(uname)-$(uname -m).sh -b
 ~/mambaforge/bin/mamba init
 bash
 ```
-2. Create a Python Environment
+
+### Intel Extension for Pytorch
+
+1. Create a Python Environment
 
 Next, we’ll create a Python environment and activate it. The current version of the extension supports Python 3.11, so we’ll use that.
 ```bash
@@ -209,12 +212,12 @@ mamba create --name pytorch-arc python=3.10 -y
 mamba activate pytorch-arc
 ```
 
-3. Install the following packages, step 3[a], manually (torch, torchvision and intel_extension_for_pytorch), for some reason pip did not recognize the packages in the instruction set:
+2. Install the following packages, step 3[a], manually (torch, torchvision and intel_extension_for_pytorch), for some reason pip did not recognize the packages in the instruction set:
 ```bash
 python -m pip install torch==2.0.1a0 torchvision==0.15.2a0 intel-extension-for-pytorch==2.0.120+xpu --extra-index-url https://pytorch-extension.intel.com/release-whl-aitools/
 ```
 
-4. Sanity check, step 4.
+3Sanity check, step 4.
 ```bash
 python -c "import torch; import intel_extension_for_pytorch as ipex; print(torch.__version__); print(ipex.__version__); [print(f'[{i}]: {torch.xpu.get_device_properties(i)}') for i in range(torch.xpu.device_count())];"
 ```
@@ -228,7 +231,7 @@ Result (Ignore the warning for libjpeg and libpng unless you want to proceed in 
 [0]: _DeviceProperties(name='Intel(R) Arc(TM) A770 Graphics', platform_name='Intel(R) Level-Zero', dev_type='gpu, support_fp64=0, total_memory=15473MB, max_compute_units=512, gpu_eu_count=512)
 ```
 
-5. Install additional dependencies:
+4Install additional dependencies:
 
 Lastly, we’ll install the other training code dependencies. You can learn about these dependencies ([here](https://christianjmills.com/posts/pytorch-train-image-classifier-timm-hf-tutorial/#installing-additional-libraries)).
 ```bash
@@ -238,7 +241,7 @@ pip install datasets jupyter matplotlib pandas pillow timm torcheval torchtnt tq
 pip install cjm_pandas_utils cjm_pil_utils cjm_pytorch_utils
 ```
 
-# Modification of code in example project.
+#### Modification of code in example project.
 1. It’s finally time to train a model. The Jupyter Notebooks with the original and modified training code are available on GitHub at the links below.
 
   * [pytorch-timm-image-classifier-training.ipynb](https://github.com/cj-mills/pytorch-timm-gesture-recognition-tutorial-code/blob/main/notebooks/pytorch-timm-image-classifier-training.ipynb)
@@ -329,6 +332,125 @@ with torch.no_grad():
         pred = model(img_tensor)
 ```
 ![training-status-complete](supporting_graphics/training_status_complete.png)
+
+### Intel Extension for Tensorflow
+The following instructions were gleaned from [here](https://intel.github.io/intel-extension-for-tensorflow/latest/docs/install/install_for_xpu.html).
+
+1. Create the environment for tensorflow.
+```bash
+mamba create --name tensorflow-arc python=3.10 -y
+mamba activate tensorflow-arc
+```
+
+2. Upgrade pip, Install tensorflow and the intel extension for tenorflow.
+```bash
+pip install --upgrade pip
+pip install tensorflow==2.14.0
+pip install --upgrade intel-extension-for-tensorflow[xpu]
+````
+
+3. Check environment:
+```bash
+export path_to_site_packages=`python -c "import site; print(site.getsitepackages()[0])"`
+bash ${path_to_site_packages}/intel_extension_for_tensorflow/tools/env_check.sh
+``` 
+
+Result:
+```bash
+
+    Check Environment for Intel(R) Extension for TensorFlow*...
+
+
+========================  Check Python  ========================
+
+ python3.10 is installed. 
+
+====================  Check Python Passed  =====================
+
+
+==========================  Check OS  ==========================
+
+ OS ubuntu:22.04 is Supported. 
+
+======================  Check OS Passed  =======================
+
+
+======================  Check Tensorflow  ======================
+
+ Tensorflow2.14 is installed. 
+
+==================  Check Tensorflow Passed  ===================
+
+
+===================  Check Intel GPU Driver  ===================
+
+ Intel(R) graphics runtime intel-level-zero-gpu-1.3.27191.42-775 is installed, but is not recommended . 
+ Intel(R) graphics runtime intel-opencl-icd-23.35.27191.42-775 is installed, but is not recommended . 
+ Intel(R) graphics runtime level-zero-1.14.0-744 is installed, but is not recommended . 
+ Intel(R) graphics runtime libigc1-1.0.15136.24-775 is installed, but is not recommended . 
+ Intel(R) graphics runtime libigdfcl1-1.0.15136.24-775 is installed, but is not recommended . 
+ Intel(R) graphics runtime libigdgmm12-22.3.12-742 is installed, but is not recommended . 
+
+===============  Check Intel GPU Driver Finshed  ================
+
+
+=====================  Check Intel oneAPI  =====================
+
+ Intel(R) oneAPI DPC++/C++ Compiler is installed. 
+ Intel(R) oneAPI Math Kernel Library is installed. 
+
+=================  Check Intel oneAPI Passed  ==================
+
+
+==========================  Check Devices Availability  ==========================
+
+2023-12-24 05:07:03.181396: I tensorflow/tsl/cuda/cudart_stub.cc:28] Could not find cuda drivers on your machine, GPU will not be used.
+2023-12-24 05:07:03.204525: E tensorflow/compiler/xla/stream_executor/cuda/cuda_dnn.cc:9342] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2023-12-24 05:07:03.204553: E tensorflow/compiler/xla/stream_executor/cuda/cuda_fft.cc:609] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2023-12-24 05:07:03.204584: E tensorflow/compiler/xla/stream_executor/cuda/cuda_blas.cc:1518] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2023-12-24 05:07:03.210099: I tensorflow/tsl/cuda/cudart_stub.cc:28] Could not find cuda drivers on your machine, GPU will not be used.
+2023-12-24 05:07:03.210366: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2023-12-24 05:07:03.715901: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2023-12-24 05:07:04.274562: I itex/core/wrapper/itex_gpu_wrapper.cc:35] Intel Extension for Tensorflow* GPU backend is loaded.
+2023-12-24 05:07:04.310842: I itex/core/wrapper/itex_cpu_wrapper.cc:70] Intel Extension for Tensorflow* AVX2 CPU backend is loaded.
+2023-12-24 05:07:04.368781: I itex/core/devices/gpu/itex_gpu_runtime.cc:129] Selected platform: Intel(R) Level-Zero
+2023-12-24 05:07:04.369000: I itex/core/devices/gpu/itex_gpu_runtime.cc:154] number of sub-devices is zero, expose root device.
+
+======================  Check Devices Availability Passed  =======================
+```
+
+4. Verify the installation.
+```bash
+python -c "import intel_extension_for_tensorflow as itex; print(itex.__version__)"
+```
+
+Result:
+
+```bash
+2023-12-24 05:09:06.085702: I tensorflow/tsl/cuda/cudart_stub.cc:28] Could not find cuda drivers on your machine, GPU will not be used.
+2023-12-24 05:09:06.107791: E tensorflow/compiler/xla/stream_executor/cuda/cuda_dnn.cc:9342] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2023-12-24 05:09:06.107812: E tensorflow/compiler/xla/stream_executor/cuda/cuda_fft.cc:609] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2023-12-24 05:09:06.107841: E tensorflow/compiler/xla/stream_executor/cuda/cuda_blas.cc:1518] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2023-12-24 05:09:06.112918: I tensorflow/tsl/cuda/cudart_stub.cc:28] Could not find cuda drivers on your machine, GPU will not be used.
+2023-12-24 05:09:06.113067: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2023-12-24 05:09:06.604664: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2023-12-24 05:09:07.154870: I itex/core/wrapper/itex_gpu_wrapper.cc:35] Intel Extension for Tensorflow* GPU backend is loaded.
+2023-12-24 05:09:07.191225: I itex/core/wrapper/itex_cpu_wrapper.cc:70] Intel Extension for Tensorflow* AVX2 CPU backend is loaded.
+2023-12-24 05:09:07.248695: I itex/core/devices/gpu/itex_gpu_runtime.cc:129] Selected platform: Intel(R) Level-Zero
+2023-12-24 05:09:07.248913: I itex/core/devices/gpu/itex_gpu_runtime.cc:154] number of sub-devices is zero, expose root device.
+2.14.0.1
+```
+
+5. Then, you can get the information that both CPU and GPU backends are loaded successfully from the console log.
+
+6. Run the example tensorflow script which was taken from Daniel Bourke's Tensorflow class's repo with some changes to print the tensorflow version.
+```bash
+python code/tensorflow-hello-world.py
+```
+
+7. You will need to map the appropriate environment variables in order to trigger the GPU if working with code in a GPU.
 
 # Conclusion
 In this tutorial, we set up Intel’s PyTorch extension on Ubuntu and trained an image classification model using an Arc GPU. The exact setup steps may change with new versions, so check the documentation for the latest version to see if there are any changes. I’ll try to keep this tutorial updated with any significant changes to the process and to keep in line with the original poster's information.

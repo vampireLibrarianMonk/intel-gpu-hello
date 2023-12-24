@@ -31,7 +31,7 @@ cudnn_version = build_info.get("cudnn_version")
 print("cuDNN version:", cudnn_version)
 
 # Print GPU information using TensorFlow
-print(f"Backend utilized: {itex.get_backend()}")
+print(f"Backend utilized: {itex.get_backend().decode('utf-8')}")
 
 # Get data
 (train_images, train_labels), (test_images, test_labels) = datasets.fashion_mnist.load_data()
