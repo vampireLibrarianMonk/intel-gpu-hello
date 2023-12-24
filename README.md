@@ -1,7 +1,7 @@
 # Foreword
 This repo was created for anyone curious as to what is going on with Intel GPUs. There has been a lot of shenanigans with Intel recently regarding their GPUs and I decided to purchase a few. 
 
-In total I have three gpus, one for testing and eventually breaking down in order to help with specs for a water cooling element. The other two are for multi-gpu testing on another desktop.
+In total I have three (SPARKLE Intel Arc A770 TITAN OC Edition 16GB) gpus, one for testing and eventually breaking down in order to help with specs for a water cooling element. The other two are for multi-gpu testing on another desktop.
 
 The GPU referred to in this tutorial is an Intel A770 Sparkle 16 GB.
 
@@ -60,46 +60,19 @@ To illustrate this, we’ll adapt the training code from my beginner-level PyTor
 Presently only the HDMI and first display port work on my card. This issue is known and as soon as I can find a working fix I will post it here.
 
 ## xpu-smi
-I am currently not able to get this package working with my current setup. Let me know how I can fix this if you can.
+xpu-smi is currently only functioning for Intel Data Center GPus.
+
+## intel_gpu_top
+The best gpu monitor app on Linux so far is intel-gpu-tools intel_gpu_top [repo](https://github.com/tiagovignatti/intel-gpu-tools/blob/master/tools/intel_gpu_top.c) [tutorial](http://www.oldcai.com/ai/intel-gpu-tools/)
 ```bash
-+-----------------------------+--------------------------------------------------------------------+
-| Device ID                   | 0                                                                  |
-+-----------------------------+--------------------------------------------------------------------+
-| GPU Utilization (%)         | N/A                                                                |
-| EU Array Active (%)         | N/A                                                                |
-| EU Array Stall (%)          | N/A                                                                |
-| EU Array Idle (%)           | N/A                                                                |
-|                             |                                                                    |
-| Compute Engine Util (%)     | N/A                                                                |
-| Render Engine Util (%)      | N/A                                                                |
-| Media Engine Util (%)       | N/A                                                                |
-| Decoder Engine Util (%)     | N/A                                                                |
-| Encoder Engine Util (%)     | N/A                                                                |
-| Copy Engine Util (%)        | N/A                                                                |
-| Media EM Engine Util (%)    | N/A                                                                |
-| 3D Engine Util (%)          | N/A                                                                |
-+-----------------------------+--------------------------------------------------------------------+
-| Reset                       | N/A                                                                |
-| Programming Errors          | N/A                                                                |
-| Driver Errors               | N/A                                                                |
-| Cache Errors Correctable    | N/A                                                                |
-| Cache Errors Uncorrectable  | N/A                                                                |
-| Mem Errors Correctable      | N/A                                                                |
-| Mem Errors Uncorrectable    | N/A                                                                |
-+-----------------------------+--------------------------------------------------------------------+
-| GPU Power (W)               | 125                                                                |
-| GPU Frequency (MHz)         | 2000                                                               |
-| Media Engine Freq (MHz)     | N/A                                                                |
-| GPU Core Temperature (C)    | N/A                                                                |
-| GPU Memory Temperature (C)  | N/A                                                                |
-| GPU Memory Read (kB/s)      | N/A                                                                |
-| GPU Memory Write (kB/s)     | N/A                                                                |
-| GPU Memory Bandwidth (%)    | N/A                                                                |
-| GPU Memory Used (MiB)       | 0                                                                  |
-| GPU Memory Util (%)         | 0                                                                  |
-| Xe Link Throughput (kB/s)   | N/A                                                                |
-+-----------------------------+--------------------------------------------------------------------+
+sudo apt-get install intel-gpu-tools
 ```
+
+Use the application:
+```bash
+sudo intel_gpu_top
+```
+
 
 ## Resizeable BAR
 Each BIOS different, please research how you can check this feature.
@@ -146,219 +119,76 @@ UBUNTU_CODENAME=jammy
 ```
 
 ## Supporting Software
+1. Start [here](https://intel.github.io/intel-extension-for-pytorch/index.html#introduction) for the launch point for any updates for Intel® Extension for PyTorch.
+
+2. Navigate to [Installation](https://intel.github.io/intel-extension-for-pytorch/index.html#installation)
+
+3. This tutorial was written for the following GPU installation option, v2.0.120+xpu --> Linux/WSL2 --> pip. Note Intel® Arc™ A-Series GPUs (Experimental support).
+
 ### Driver
-1. Run the following bash commands to add the Intel Graphics drivers repository:
+1. Follow [Client Driver](https://dgpu-docs.intel.com/driver/client/overview.html) Steps 2.1.2 and 2.1.3
+
+### Intel® oneAPI Base Toolkit
+1. Follow 2024.0.0 [instructions](https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit-download.html) Linux online installer.
+
+2. The installer will check system requirements, select Continue.
+![one_api_1](supporting_graphics/one_api/one_api_1.png)
+
+3. Select "I accept the terms of the license agreement" and Continue.
+![one_api_2](supporting_graphics/one_api/one_api_2.png)
+
+4. Ensure you install libdrm2, I installed it and this warning did not go away, proceed with the next step.
+![one_api_3](supporting_graphics/one_api/one_api_3.png)
+
+5. Unless you have eclipse installed, I installed Pycharm, proceed with the next step.
+![one_api_4](supporting_graphics/one_api/one_api_4.png)
+
+6. I did not consent to the collection of my information, proceed with the next step.
+![one_api_5](supporting_graphics/one_api/one_api_5.png)
+
+7. With this warning I installed g++, went back one step then proceeded with this warning disappearing.
+![one_api_6](supporting_graphics/one_api/one_api_6.png)
+
+8. Let the install finish then select Finish.
+![one_api_7](supporting_graphics/one_api/one_api_7.png)
+
+9. Set the environment variables with the following command:
 ```bash
-sudo -v && \
-wget -qO - https://repositories.intel.com/graphics/intel-graphics.key | \
-  sudo gpg --dearmor --output /usr/share/keyrings/intel-graphics.gpg && \
-echo "deb [arch=amd64,i386 signed-by=/usr/share/keyrings/intel-graphics.gpg] https://repositories.intel.com/graphics/ubuntu jammy arc" | \
-  sudo tee /etc/apt/sources.list.d/intel-gpu-jammy.list && \
-sudo apt-get update
+source -l /opt/intel/oneapi/setvars.sh
 ```
 
-2. The above bash commands perform the following steps:
+Result:
 
-  * Refresh sudo access to avoid multiple password prompts. 
-  * Download the Intel graphics repository’s public key. 
-  * Convert the downloaded key to binary and save it. 
-  * Add the Intel graphics repository to the APT’s list of package sources. 
-  * Update the package list from all configured repositories, including the newly added Intel repository
-
-3. Install the following packages:
 ```bash
-sudo apt-get install -y \
-  intel-opencl-icd intel-level-zero-gpu level-zero \
-  intel-media-va-driver-non-free libmfx1 libmfxgen1 libvpl2 \
-  libegl-mesa0 libegl1-mesa libegl1-mesa-dev libgbm1 libgl1-mesa-dev libgl1-mesa-dri \
-  libglapi-mesa libgles2-mesa-dev libglx-mesa0 libigdgmm12 libxatracker2 mesa-va-drivers \
-  mesa-vdpau-drivers mesa-vulkan-drivers va-driver-all vainfo hwinfo clinfo mesa-utils
+:: initializing oneAPI environment ...
+   bash: BASH_VERSION = 5.1.16(1)-release
+   args: Using "$@" for setvars.sh arguments: 
+:: advisor -- latest
+:: ccl -- latest
+:: compiler -- latest
+:: dal -- latest
+:: debugger -- latest
+:: dev-utilities -- latest
+:: dnnl -- latest
+:: dpcpp-ct -- latest
+:: dpl -- latest
+:: ipp -- latest
+:: ippcp -- latest
+:: mkl -- latest
+:: mpi -- latest
+:: tbb -- latest
+:: vtune -- latest
+:: oneAPI environment initialized ::
 ```
 
-4. Verify:
+10. See the environment variables.
 ```bash
-hwinfo --display
+env | grep oneapi
 ```
 
-5. Result:
-```bash
-28: PCI 2d00.0: 0300 VGA compatible controller (VGA)            
-  [Created at pci.386]
-  Unique ID: ETRw.nFZoEk2ADRF
-  Parent ID: ejHF.mr2N3fBJq5F
-  SysFS ID: /devices/pci0000:00/0000:00:03.1/0000:2b:00.0/0000:2c:01.0/0000:2d:00.0
-  SysFS BusID: 0000:2d:00.0
-  Hardware Class: graphics card
-  Model: "Intel VGA compatible controller"
-  Vendor: pci 0x8086 "Intel Corporation"
-  Device: pci 0x56a0 
-  SubVendor: pci 0x172f 
-  SubDevice: pci 0x3937 
-  Revision: 0x08
-  Driver: "i915"
-  Driver Modules: "i915"
-  Memory Range: 0xfb000000-0xfbffffff (rw,non-prefetchable)
-  Memory Range: 0x7800000000-0x7bffffffff (ro,non-prefetchable)
-  Memory Range: 0xfc000000-0xfc1fffff (ro,non-prefetchable,disabled)
-  IRQ: 114 (270648 events)
-  Module Alias: "pci:v00008086d000056A0sv0000172Fsd00003937bc03sc00i00"
-  Driver Info #0:
-    Driver Status: i915 is active
-    Driver Activation Cmd: "modprobe i915"
-  Config Status: cfg=new, avail=yes, need=no, active=unknown
-  Attached to: #20 (PCI bridge)
+### Mamba
 
-Primary display adapter: #28
-```
-
-6. Verify media drivers:
-```bash
-export DISPLAY=:0.0; vainfo
-```
-
-7. Result:
-```bash
-Trying display: wayland
-libva info: VA-API version 1.19.0
-libva info: Trying to open /usr/lib/x86_64-linux-gnu/dri/iHD_drv_video.so
-libva info: Found init function __vaDriverInit_1_19
-libva info: va_openDriver() returns 0
-vainfo: VA-API version: 1.19 (libva 2.19.0)
-vainfo: Driver version: Intel iHD driver for Intel(R) Gen Graphics - 23.3.2 ()
-vainfo: Supported profile and entrypoints
-      VAProfileNone                   :	VAEntrypointVideoProc
-      VAProfileNone                   :	VAEntrypointStats
-      VAProfileMPEG2Simple            :	VAEntrypointVLD
-      VAProfileMPEG2Main              :	VAEntrypointVLD
-      VAProfileH264Main               :	VAEntrypointVLD
-      VAProfileH264Main               :	VAEntrypointEncSliceLP
-      VAProfileH264High               :	VAEntrypointVLD
-      VAProfileH264High               :	VAEntrypointEncSliceLP
-      VAProfileJPEGBaseline           :	VAEntrypointVLD
-      VAProfileJPEGBaseline           :	VAEntrypointEncPicture
-      VAProfileH264ConstrainedBaseline:	VAEntrypointVLD
-      VAProfileH264ConstrainedBaseline:	VAEntrypointEncSliceLP
-      VAProfileHEVCMain               :	VAEntrypointVLD
-      VAProfileHEVCMain               :	VAEntrypointEncSliceLP
-      VAProfileHEVCMain10             :	VAEntrypointVLD
-      VAProfileHEVCMain10             :	VAEntrypointEncSliceLP
-      VAProfileVP9Profile0            :	VAEntrypointVLD
-      VAProfileVP9Profile0            :	VAEntrypointEncSliceLP
-      VAProfileVP9Profile1            :	VAEntrypointVLD
-      VAProfileVP9Profile1            :	VAEntrypointEncSliceLP
-      VAProfileVP9Profile2            :	VAEntrypointVLD
-      VAProfileVP9Profile2            :	VAEntrypointEncSliceLP
-      VAProfileVP9Profile3            :	VAEntrypointVLD
-      VAProfileVP9Profile3            :	VAEntrypointEncSliceLP
-      VAProfileHEVCMain12             :	VAEntrypointVLD
-      VAProfileHEVCMain422_10         :	VAEntrypointVLD
-      VAProfileHEVCMain422_10         :	VAEntrypointEncSliceLP
-      VAProfileHEVCMain422_12         :	VAEntrypointVLD
-      VAProfileHEVCMain444            :	VAEntrypointVLD
-      VAProfileHEVCMain444            :	VAEntrypointEncSliceLP
-      VAProfileHEVCMain444_10         :	VAEntrypointVLD
-      VAProfileHEVCMain444_10         :	VAEntrypointEncSliceLP
-      VAProfileHEVCMain444_12         :	VAEntrypointVLD
-      VAProfileHEVCSccMain            :	VAEntrypointVLD
-      VAProfileHEVCSccMain            :	VAEntrypointEncSliceLP
-      VAProfileHEVCSccMain10          :	VAEntrypointVLD
-      VAProfileHEVCSccMain10          :	VAEntrypointEncSliceLP
-      VAProfileHEVCSccMain444         :	VAEntrypointVLD
-      VAProfileHEVCSccMain444         :	VAEntrypointEncSliceLP
-      VAProfileAV1Profile0            :	VAEntrypointVLD
-      VAProfileAV1Profile0            :	VAEntrypointEncSliceLP
-      VAProfileHEVCSccMain444_10      :	VAEntrypointVLD
-      VAProfileHEVCSccMain444_10      :	VAEntrypointEncSliceLP
-```
-
-8. Verify computing drivers:
-```bash
-clinfo -l
-```
-
-9. Result:
-```bash
-Platform #0: Intel(R) OpenCL Graphics
- `-- Device #0: Intel(R) Arc(TM) A770 Graphics
-```
-
-10. Get the info on that device
-```bash
-clinfo -d 0:0
-```
-
-11. Result (the top 10 lines of a long output):
-```bash
-  Platform Name                                   Intel(R) OpenCL Graphics
-  Device Name                                     Intel(R) Arc(TM) A770 Graphics
-  Device Vendor                                   Intel(R) Corporation
-  Device Vendor ID                                0x8086
-  Device Version                                  OpenCL 3.0 NEO 
-  Device UUID                                     8680a056-0800-0000-2d00-000000000000
-  Driver UUID                                     32332e33-302e-3236-3931-382e35300000
-  Valid Device LUID                               No
-  Device LUID                                     805a-c2bbfd7f0000
-  Device Node Mask                                0
-```
-
-12. Verify 3D drivers installation:
-```bash
-glxinfo | grep OpenGL
-```
-
-13. Result:
-```bash
-OpenGL vendor string: Intel
-OpenGL renderer string: Mesa Intel(R) Arc(tm) A770 Graphics (DG2)
-OpenGL core profile version string: 4.6 (Core Profile) Mesa 23.2.0-devel (git-313c40973b)
-OpenGL core profile shading language version string: 4.60
-OpenGL core profile context flags: (none)
-OpenGL core profile profile mask: core profile
-OpenGL core profile extensions:
-OpenGL version string: 4.6 (Compatibility Profile) Mesa 23.2.0-devel (git-313c40973b)
-OpenGL shading language version string: 4.60
-OpenGL context flags: (none)
-OpenGL profile mask: compatibility profile
-OpenGL extensions:
-OpenGL ES profile version string: OpenGL ES 3.2 Mesa 23.2.0-devel (git-313c40973b)
-OpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20
-OpenGL ES profile extensions:
-```
-
-14. Due to issues with oneAPI Base Toolkit the following [fix](https://github.com/intel/intel-extension-for-pytorch/issues/417) has to be made to fix the following error.
-```bash
-ImportError: libmkl_sycl.so.3: cannot open shared object file: No such file or directory
-```
-
-15a. Install basekit 2023.2:
-```bash
-wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
-echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list
-apt update
-apt install intel-oneapi-runtime-openmp=2023.2.2-47 intel-oneapi-runtime-dpcpp-cpp=2023.2.2-47 intel-oneapi-runtime-mkl=2023.2.0-49495
-```
-
-15b. Via an apt list I found that the following is a version back before the breaking 2024 update:
-```bash
-sudo apt-get install intel-basekit=2023.2.0-49384 -y
-```
-
-16. Export the following variables or save them in your .bashrc.
-```bash
-export ONEAPI_ROOT=/opt/intel/oneapi
-export DPCPPROOT=${ONEAPI_ROOT}/compiler/latest
-export MKLROOT=${ONEAPI_ROOT}/mkl/latest
-export IPEX_XPU_ONEDNN_LAYOUT=1
-```
-
-The above lines perform the following steps:
-
-  * Add the installation location for the oneAPI toolkit as an environment variable. 
-  * Add the installation location for the DPC++ Compiler as an environment variable. 
-  * Add the installation for the Math Kernel Library as an environment variable. 
-  * Set the oneDNN memory layout to improve training speed.
-
-17. We’ll use the Mamba package manager to create the Python environment. You can learn more about it in my getting started tutorial.
+1. We’ll use the Mamba package manager to create the Python environment. You can learn more about it in my getting started tutorial.
 
 The following bash commands will download the latest release, install it, and relaunch the current bash shell to apply the relevant changes:
 ```bash
@@ -367,21 +197,34 @@ bash Mambaforge-$(uname)-$(uname -m).sh -b
 ~/mambaforge/bin/mamba init
 bash
 ```
-
-18. Create a Python Environment
+2. Create a Python Environment
 
 Next, we’ll create a Python environment and activate it. The current version of the extension supports Python 3.11, so we’ll use that.
 ```bash
-mamba create --name pytorch-arc python=3.11 -y
+mamba create --name pytorch-arc python=3.10 -y
 mamba activate pytorch-arc
 ```
 
-19. Install the following packages manually (torch, torchvision and intel_extension_for_pytorch), for some reason pip did not recognize the packages in the instruction set:
+3. Install the following packages, step 3[a], manually (torch, torchvision and intel_extension_for_pytorch), for some reason pip did not recognize the packages in the instruction set:
 ```bash
-pip install https://intel-extension-for-pytorch.s3.amazonaws.com/ipex_stable/xpu/torch-2.0.1a0%2Bcxx11.abi-cp311-cp311-linux_x86_64.whl https://intel-extension-for-pytorch.s3.amazonaws.com/ipex_stable/xpu/torchvision-0.15.2a0%2Bcxx11.abi-cp311-cp311-linux_x86_64.whl https://intel-extension-for-pytorch.s3.amazonaws.com/ipex_stable/xpu/intel_extension_for_pytorch-2.0.110%2Bxpu-cp311-cp311-linux_x86_64.whl
+python -m pip install torch==2.0.1a0 torchvision==0.15.2a0 intel-extension-for-pytorch==2.0.120+xpu --extra-index-url https://pytorch-extension.intel.com/release-whl-aitools/
 ```
 
-20. Install additional dependencies:
+4. Sanity check, step 4.
+```bash
+python -c "import torch; import intel_extension_for_pytorch as ipex; print(torch.__version__); print(ipex.__version__); [print(f'[{i}]: {torch.xpu.get_device_properties(i)}') for i in range(torch.xpu.device_count())];"
+```
+
+Result (Ignore the warning for libjpeg and libpng unless you want to proceed in a different direction than this tutorial):
+```bash
+/home/flaniganp/mambaforge/envs/pytorch-arc/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: ''If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+2.0.1a0+cxx11.abi
+2.0.120+xpu
+[0]: _DeviceProperties(name='Intel(R) Arc(TM) A770 Graphics', platform_name='Intel(R) Level-Zero', dev_type='gpu, support_fp64=0, total_memory=15473MB, max_compute_units=512, gpu_eu_count=512)
+```
+
+5. Install additional dependencies:
 
 Lastly, we’ll install the other training code dependencies. You can learn about these dependencies ([here](https://christianjmills.com/posts/pytorch-train-image-classifier-timm-hf-tutorial/#installing-additional-libraries)).
 ```bash
