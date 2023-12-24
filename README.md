@@ -73,6 +73,10 @@ Use the application:
 sudo intel_gpu_top
 ```
 
+## other monitoring
+The Sparkle editions allow for the passive monitoring of temperature via the RGB color spectrum.
+
+![sparkle_temp_graph](supporting_graphics/sparkle_temp_graph.png)
 
 ## Resizeable BAR
 Each BIOS different, please research how you can check this feature.
