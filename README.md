@@ -452,6 +452,32 @@ python code/tensorflow-hello-world.py
 
 7. You will need to map the appropriate environment variables in order to trigger the GPU if working with code in a GPU.
 
+8. In Pycharm you can do the following to export the environment variables from oneapi to use for tensorflow:
+```bash
+printenv | grep oneapi | paste -sd ';' -
+```
+
+9. Create a new runtime configuration.
+
+![env_setup_1](supporting_graphics/pycharm/env_setup_1.png)
+
+10. Select the "+".
+
+![env_setup_2](supporting_graphics/pycharm/env_setup_2.png)
+
+11. Select Python.
+
+![env_setup_3](supporting_graphics/pycharm/env_setup_3.png)
+
+12. Fill in Name, script and place a semicolon after PYTHONBUFFERED=1. After the semicolon place the semicolon delimited env from step 8.
+
+![env_setup_4](supporting_graphics/pycharm/env_setup_4.png)
+
+13. When you script runs you will know when the GPU is utilized when the following pops up:
+```bash
+Intel Extension for Tensorflow* GPU backend is loaded.
+```
+
 # Conclusion
 In this tutorial, we set up Intel’s PyTorch extension on Ubuntu and trained an image classification model using an Arc GPU. The exact setup steps may change with new versions, so check the documentation for the latest version to see if there are any changes. I’ll try to keep this tutorial updated with any significant changes to the process and to keep in line with the original poster's information.
 
