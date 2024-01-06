@@ -158,7 +158,7 @@ UBUNTU_CODENAME=jammy
 
 9. Set the environment variables with the following command:
 ```bash
-source -l /opt/intel/oneapi/setvars.sh
+source /opt/intel/oneapi/setvars.sh
 ```
 
 Result:
