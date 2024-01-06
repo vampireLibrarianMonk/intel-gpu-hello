@@ -62,7 +62,7 @@ Presently only the HDMI and first display port work on my card. This issue is kn
 ## xpu-smi
 xpu-smi is currently only functioning for Intel Data Center GPus.
 
-## intel_gpu_top
+## GPU Monitoring Software
 The best gpu monitor app on Linux so far is intel-gpu-tools intel_gpu_top [repo](https://github.com/tiagovignatti/intel-gpu-tools/blob/master/tools/intel_gpu_top.c) [tutorial](http://www.oldcai.com/ai/intel-gpu-tools/)
 ```bash
 sudo apt-get install intel-gpu-tools
