@@ -1,4 +1,4 @@
-notebooks/modified/pytorch-timm-image-classifier
+pytorch-env/modified/pytorch-timm-image-classifier
 .ipynb_checkpoints/
 .idea
 Datasets

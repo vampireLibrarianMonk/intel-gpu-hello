@@ -1,0 +1,52 @@
+Checking installed versions of specified packages...
+	intel-opencl-icd --> intel-opencl-icd=23.43.27642.67-803.123~22.04
+	intel-oneapi-runtime-dpcpp-cpp --> intel-oneapi-runtime-dpcpp-cpp=2025.0.4-1519
+	intel-oneapi-runtime-mkl --> intel-oneapi-runtime-mkl=2025.0.1-14
+	intel-oneapi-common-vars --> intel-oneapi-common-vars=2025.0.1-15
+	intel-oneapi-common-oneapi-vars --> intel-oneapi-common-oneapi-vars=2025.0.1-15
+	intel-oneapi-diagnostics-utility --> intel-oneapi-diagnostics-utility=2024.2.1-13
+	intel-oneapi-compiler-dpcpp-cpp --> intel-oneapi-compiler-dpcpp-cpp=2025.0.4-1519
+	intel-oneapi-dpcpp-ct --> intel-oneapi-dpcpp-ct=2025.0.1-17
+	intel-oneapi-mkl --> intel-oneapi-mkl=2025.0.1-14
+	intel-oneapi-mkl-devel --> intel-oneapi-mkl-devel=2025.0.1-14
+	intel-oneapi-mpi --> intel-oneapi-mpi=2021.14.1-5
+	intel-oneapi-mpi-devel --> intel-oneapi-mpi-devel=2021.14.1-5
+	intel-oneapi-dal --> intel-oneapi-dal=2025.0.1-9
+	intel-oneapi-dal-devel --> intel-oneapi-dal-devel=2025.0.1-9
+	intel-oneapi-ippcp --> intel-oneapi-ippcp=2025.0.0-615
+	intel-oneapi-ippcp-devel --> intel-oneapi-ippcp-devel=2025.0.0-615
+	intel-oneapi-ipp --> intel-oneapi-ipp=2022.0.0-808
+	intel-oneapi-ipp-devel --> intel-oneapi-ipp-devel=2022.0.0-808
+	intel-oneapi-tlt --> intel-oneapi-tlt=2025.0.0-550
+	intel-oneapi-ccl --> intel-oneapi-ccl=2021.14.0-505
+	intel-oneapi-ccl-devel --> intel-oneapi-ccl-devel=2021.14.0-505
+	intel-oneapi-dnnl-devel --> intel-oneapi-dnnl-devel=2025.0.1-6
+	intel-oneapi-dnnl --> intel-oneapi-dnnl=2025.0.1-6
+	intel-oneapi-tcm-1.0 --> intel-oneapi-tcm-1.0=1.0.1-175
+
+Use the following line to quickly install the needed packages. 
+sudo apt install --simulate \
+    intel-opencl-icd=23.43.27642.67-803.123~22.04 \
+    intel-oneapi-runtime-dpcpp-cpp=2025.0.4-1519 \
+    intel-oneapi-runtime-mkl=2025.0.1-14 \
+    intel-oneapi-common-vars=2025.0.1-15 \
+    intel-oneapi-common-oneapi-vars=2025.0.1-15 \
+    intel-oneapi-diagnostics-utility=2024.2.1-13 \
+    intel-oneapi-compiler-dpcpp-cpp=2025.0.4-1519 \
+    intel-oneapi-dpcpp-ct=2025.0.1-17 \
+    intel-oneapi-mkl=2025.0.1-14 \
+    intel-oneapi-mkl-devel=2025.0.1-14 \
+    intel-oneapi-mpi=2021.14.1-5 \
+    intel-oneapi-mpi-devel=2021.14.1-5 \
+    intel-oneapi-dal=2025.0.1-9 \
+    intel-oneapi-dal-devel=2025.0.1-9 \
+    intel-oneapi-ippcp=2025.0.0-615 \
+    intel-oneapi-ippcp-devel=2025.0.0-615 \
+    intel-oneapi-ipp=2022.0.0-808 \
+    intel-oneapi-ipp-devel=2022.0.0-808 \
+    intel-oneapi-tlt=2025.0.0-550 \
+    intel-oneapi-ccl=2021.14.0-505 \
+    intel-oneapi-ccl-devel=2021.14.0-505 \
+    intel-oneapi-dnnl-devel=2025.0.1-6 \
+    intel-oneapi-dnnl=2025.0.1-6 \
+    intel-oneapi-tcm-1.0=1.0.1-175 
