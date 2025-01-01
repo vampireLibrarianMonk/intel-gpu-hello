@@ -7,9 +7,9 @@ The GPU referred to in this tutorial is an Intel A770 Sparkle 16 GB. I originall
 
 Here are the the GPU specifications.
 
-+-----------------------------------+-------------------------------------------+
-| Feature                           | Specification                             |
-+-----------------------------------+-------------------------------------------+
+
+| **Technical Specifications**              | **Details**                                      |
+|-------------------------------------------|--------------------------------------------------|
 | **GPU**                           | Intel® Arc™ A770                          |
 | **Architecture**                  | Xe HPG (Alchemist)                        |
 | **Process Technology**            | 6 nm                                      |
@@ -43,7 +43,6 @@ Here are the the GPU specifications.
 | **Intel® Deep Link Technologies** | Hyper Compute, Hyper Encode, Stream Assist|
 | **Additional Features**           | ThermalSync LED with temperature-based    |
 |                                   | color change                              |
-+-----------------------------------+-------------------------------------------+
 
 # A special thanks to
 This guide was kicked off by me finding [Christian Mills article](https://christianjmills.com/posts/intel-pytorch-extension-tutorial/native-ubuntu/) on getting the GPU online.
@@ -300,9 +299,9 @@ Intel Extension for Tensorflow* GPU backend is loaded.
 ### Intel Extension for Pytorch
 1. Create a Python Environment:
 
-Next, we’ll create a Python environment and activate it. The current version of the extension supports Python 3.11, so we’ll use that.
+Next, we’ll create a Python environment and activate it. The current version of the extension supports Python 3.10, so we’ll use that.
 ```bash
-mamba env create -f pytorch-env/llm/ipex-llm-env.yml
+mamba env create -f pytorch-env/pytorch-arc.yml
 mamba activate pytorch-arc
 ```
 
@@ -327,9 +326,9 @@ Result (Ignore the warning for raytracing unless you want to proceed in a differ
 
 3. Install additional dependencies:
 
-Lastly, we’ll install the other training code dependencies. You can learn about these dependencies ([here](https://christianjmills.com/posts/pytorch-train-image-classifier-timm-hf-tutorial/#installing-additional-libraries)).
+Here is the jupyter notebook environment that is separate from the standalone pytorch. You can learn about these dependencies ([here](https://christianjmills.com/posts/pytorch-train-image-classifier-timm-hf-tutorial/#installing-additional-libraries)).
 ```bash
-mamba env create -f pytorch-env/jupyter-notebook-ipex-llm-env.yml
+mamba env create -f pytorch-env/jupyter-notebook-environment.yml
 mamba activate pytorch-arc-jupyter-notebook-env
 ```
 
@@ -457,14 +456,47 @@ with torch.no_grad(), autocast(torch.device(device).type):
 ### Local LLM Inference with `IPEX-LLM`
 To close out this tutorial, we will cover how to perform local LLM inference using Intel’s ipex-llm library. This library allows us to run many popular LLMs in INT4 precision on our Arc GPU.
 
-1. Create a New Python Environment
-Each library version depends on specific versions of Intel’s PyTorch extension. The most recent release of ipex-llm still depends on version 2.1.10+xpu of the extension.
-
-We can create a dedicated mamba environment for this library to avoid dependency conflicts:
+1. Set Environment Variables in a *new* terminal without the set vars from either the Pytorch or Tensorflow exercise in this README:
 ```bash
-mamba env create -f pytorch-env/llm/ipex-llm-env.yml
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/intel/oneapi/lib
+export PYTHONUSERBASE=~/intel/oneapi
+export PATH=~/intel/oneapi/bin:$PATH
+```
+
+These commands update your environment variables to include the oneAPI library and binary paths.
+
+2. Create and Activate a Conda Environment:
+```bash
+mamba create --name ipex-llm-env python=3.10 -y
 mamba activate ipex-llm-env
 ```
+
+This creates a new Conda environment named ipex-llm-env with Python 3.10 and activates it.
+
+3. Install Intel Extension for PyTorch:
+```bash
+pip install --pre --upgrade ipex-llm[xpu] --extra-index-url https://pytorch-extension.intel.com/release-whl/stable/xpu/us/ --user
+```
+
+This installs the pre-release version of Intel Extension for PyTorch with XPU support.
+
+4. Install Additional Python Packages:
+```bash
+pip install jupyter transformers==4.43.1 trl --user
+```
+
+This installs Jupyter, a specific version of the Transformers library, and the trl package.
+
+5. Install Intel OneAPI Libraries:
+```bash
+pip install dpcpp-cpp-rt==2024.0.2 mkl-dpcpp==2024.0.0 onednn==2024.0.0 --user
+```
+
+This installs specific versions of Intel's oneAPI libraries.
+
+Note: The --user flag installs the packages to the user’s site-packages directory. Ensure that the PYTHONUSERBASE environment variable is set appropriately to include these packages.
+
+Important: When setting environment variables like LD_LIBRARY_PATH, be cautious as it can affect system-wide library loading. It's recommended to set such variables within the scope of your Conda environment to avoid potential conflicts.
 
 2. We can launch a new Jupyter Notebook environment once the dependencies finish installing.
 ```bash
@@ -689,7 +721,6 @@ That’s a basic introduction to AI for beginners! I hope this helps you underst
 ### Intel Extension for Tensorflow
 The following instructions were gleaned from [here](https://intel.github.io/intel-extension-for-tensorflow/latest/get_started.html) and the Christian Mills blog from Pytorch. 
 
-#### New Linux Environment
 1. Create and activate environment for tensorflow-arc.
 ```bash
 mamba env create -f tensorflow-env/tensorflow-environment.yml
