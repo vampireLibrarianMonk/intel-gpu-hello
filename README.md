@@ -44,6 +44,203 @@ Here are the the GPU specifications.
 | **Additional Features**           | ThermalSync LED with temperature-based    |
 |                                   | color change                              |
 
+# A word of warning
+When utilizing the Intel Extension for PyTorch (IPEX) with the Intel Arc A770 GPU, it's important to be aware of a known limitation regarding memory allocation. Specifically, attempts to allocate arrays larger than 4 GB on the A770 can lead to crashes or incorrect computations. This issue arises because the Intel compute runtime currently doesn't support buffer allocations exceeding 4 GB. 
+
+Implications for Machine Learning Tasks:
+
+Model Training and Inference: Operations that require large tensor allocations may encounter errors or produce invalid results if they exceed the 4 GB per-buffer limit.
+
+Recommendations:
+
+    * Optimize Memory Usage: Design models and data pipelines to keep individual tensor sizes below the 4 GB threshold.
+
+    * Monitor Updates: Stay informed about updates to IPEX and Intel's GPU drivers, as future releases may address this limitation.
+
+For more detailed information and ongoing discussions about this issue, refer to the relevant GitHub issue: 
+
+By adhering to these guidelines, you can effectively utilize the Intel Arc A770 GPU for machine learning tasks while mitigating potential memory allocation issues.
+
+[Arrays larger than 4GB crashes # 325](https://github.com/intel/intel-extension-for-pytorch/issues/325)
+
+Or apparently you can throw your developer hat on and recompile... 
+
+[Too low 4GB allocation limit on Intel Arc GPUs (CL_DEVICE_MAX_MEM_ALLOC_SIZE) #627](https://github.com/intel/compute-runtime/issues/627)
+[Allocations greater than 4GB](https://github.com/intel/compute-runtime/blob/master/programmers-guide/ALLOCATIONS_GREATER_THAN_4GB.md)
+
+A way to confirm the problem still exists:
+```bash
+import torch
+import intel_extension_for_pytorch as ipex
+
+def test_large_allocation():
+    try:
+        # Check if XPU is available
+        if not torch.xpu.is_available():
+            raise RuntimeError("XPU device is not available.")
+
+        device = torch.device("xpu")
+        print("Using device:", device)
+
+        # Allocate a large tensor (e.g., 1024x1024x1024x4 bytes > 4GB)
+        size_gb = 5  # Tensor size in GB
+        elements = size_gb * 1024**3 // 4  # Number of float32 elements
+        print(f"Allocating tensor with {elements} elements (>{size_gb} GB)...")
+
+        large_tensor = torch.ones(elements, dtype=torch.float32, device=device)
+        print("Large tensor allocated successfully.")
+
+        # Perform a simple operation to validate functionality
+        result_tensor = large_tensor * 2
+        print("Operation on large tensor completed successfully.")
+
+        # Free up memory
+        del large_tensor
+        del result_tensor
+        torch.xpu.empty_cache()
+
+    except RuntimeError as e:
+        print(f"Runtime error: {e}")
+
+if __name__ == "__main__":
+    test_large_allocation()
+```
+
+A fix to elaborate on:
+```bash
+import torch
+import intel_extension_for_pytorch as ipex
+
+def test_large_allocation_in_chunks():
+    """
+    Test large tensor allocation and processing on Intel XPU using chunking.
+
+    This function demonstrates a workaround for the memory allocation limit on Intel XPU devices,
+    particularly the Intel Arc 770, which cannot allocate memory blocks larger than 4GB in a single allocation.
+
+    Problem Description:
+    -------------------
+    Intel XPU devices, including the Intel Arc 770, currently have a limitation in their memory allocation
+    system that prevents single memory blocks larger than 4GB from being allocated. This restriction
+    arises due to hardware constraints or driver-level limitations. Attempting to allocate a tensor larger
+    than 4GB results in a RuntimeError.
+
+    Workaround:
+    -----------
+    To circumvent this limitation, large tensors can be divided into smaller chunks that are individually
+    allocated and processed. This method allows computations that require more than 4GB of memory to be
+    executed without exceeding the per-allocation memory limit. The chunking strategy also ensures efficient
+    memory usage by releasing memory after processing each chunk.
+
+    Implementation Details:
+    ------------------------
+    - The total tensor size is split into smaller chunks, each of size 4GB.
+    - For each chunk:
+      1. Allocate a tensor of the chunk size on the XPU.
+      2. Perform the required computation (e.g., element-wise multiplication by 2).
+      3. Free the memory used by the chunk after processing.
+    - Repeat this process until all chunks are processed.
+
+    Parameters:
+    -----------
+    None
+
+    Returns:
+    --------
+    None
+
+    Example Usage:
+    --------------
+    This function processes a total of 24GB of data by splitting it into 6 chunks of 4GB each. It performs a
+    simple computation on each chunk and ensures memory is freed after each operation.
+
+    Notes:
+    ------
+    - Ensure the Intel XPU and the Intel Extension for PyTorch (IPEX) are properly installed and configured.
+    - Monitor the system memory usage to confirm the effectiveness of the chunking approach.
+    """
+    try:
+        # Check if XPU is available
+        if not torch.xpu.is_available():
+            raise RuntimeError("XPU device is not available.")
+
+        device = torch.device("xpu")
+        print("Using device:", device)
+
+        # Define chunk size (4GB per chunk)
+        chunk_size_gb = 4
+        elements_per_chunk = chunk_size_gb * 1024**3 // 4  # Number of float32 elements per chunk
+        num_chunks = 6  # Total size = 24GB split into 6 chunks
+
+        print(f"Allocating tensor in {num_chunks} chunks of {chunk_size_gb} GB each...")
+
+        # Allocate and process the tensor in chunks
+        for i in range(num_chunks):
+            print(f"Processing chunk {i + 1}/{num_chunks}...")
+            chunk_tensor = torch.ones(elements_per_chunk, dtype=torch.float32, device=device)
+
+            # Perform a simple operation on the chunk
+            result_tensor = chunk_tensor * 2
+
+            # Free up memory for the current chunk
+            del chunk_tensor
+            del result_tensor
+            torch.xpu.empty_cache()
+
+        print("All chunks processed successfully.")
+
+    except RuntimeError as e:
+        print(f"Runtime error: {e}")
+
+if __name__ == "__main__":
+    test_large_allocation_in_chunks()
+```
+
+TODO revisit with fresh head on pure pytorch installation for llm inferencing that uses pytorch 2.51 which just ran out of memory when tried. Maybe when intel releases a 24 GB GPU.
+```bash
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+
+def generate_secure_code():
+    model_name = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+
+    try:
+        # Load tokenizer and model
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        model = AutoModelForCausalLM.from_pretrained(model_name)
+
+        # Initialize the text generation pipeline
+        code_generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
+
+        # Define the prompt with the vulnerable code
+        prompt = (
+            "The following Python code contains a vulnerability due to the use of `pickle` for deserialization, "
+            "which is unsafe for untrusted input. Rewrite the code to use a safe alternative like `json` and "
+            "provide only the corrected code:\n\n"
+            "```python\n"
+            "import pickle\n\n"
+            "def load_user_data(serialized_data):\n"
+            "    user_data = pickle.loads(serialized_data)  # Untrusted input deserialization\n"
+            "    print(f\"User data: {user_data}\")\n"
+            "```"
+        )
+
+        # Generate the secure code suggestion
+        print("Generating secure code suggestion...")
+        suggestions = code_generator(prompt, max_length=150, num_return_sequences=1)
+
+        # Extract and print the generated code
+        secure_code = suggestions[0]["generated_text"].strip()
+        print("Suggested Secure Code:\n")
+        print(secure_code)
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+if __name__ == "__main__":
+    generate_secure_code()
+```
+
 # A special thanks to
 This guide was kicked off by me finding [Christian Mills article](https://christianjmills.com/posts/intel-pytorch-extension-tutorial/native-ubuntu/) on getting the GPU online.
 
@@ -498,12 +695,12 @@ Note: The --user flag installs the packages to the user’s site-packages direct
 
 Important: When setting environment variables like LD_LIBRARY_PATH, be cautious as it can affect system-wide library loading. It's recommended to set such variables within the scope of your Conda environment to avoid potential conflicts.
 
-2. We can launch a new Jupyter Notebook environment once the dependencies finish installing.
+6. We can launch a new Jupyter Notebook environment once the dependencies finish installing.
 ```bash
 jupyter notebook
 ```
 
-3. Enter acces token from Hugging Face (read permission for your requested model `meta-llama/Meta-Llama-3.1-8B-Instruct`):
+7. Enter acces token from Hugging Face (read permission for your requested model `meta-llama/Meta-Llama-3.1-8B-Instruct`):
 ```bash
 from getpass import getpass
 
@@ -511,7 +708,7 @@ from getpass import getpass
 api_token = getpass('Enter your API token: ')
 ```
 
-4. Set Environment Variables
+8. Set Environment Variables
 With our environment set up, we can dive into the code. First, we need to set the following environment variables:
 ```bash
 import os
@@ -522,7 +719,7 @@ os.environ['SYCL_CACHE_PERSISTENT'] = '1'
 os.environ['SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS'] = '1'
 ```
 
-5. Import the Required Dependencies
+9. Import the Required Dependencies
 Next, we will import the necessary Python packages into our Jupyter Notebook.
 ```bash
 import torch
@@ -537,7 +734,7 @@ from IPython.display import Markdown
 
 We can use the Markdown class from IPython to render Markdown output from the model inside the notebook.
 
-6. Define a Function to Prepare the Prompt
+10. Define a Function to Prepare the Prompt
 We can use the following function from this example script to prepare prompts for the LLama 3.1 model:
 
 ```bash
@@ -577,7 +774,7 @@ def get_prompt(user_input: str, chat_history: list[tuple[str, str]], system_prom
     return ''.join(prompt_texts)
 ```
 
-7. Load the Model in INT4
+11. Load the Model in INT4
 Next, we can load the LLaMA 3.1 8B Instruct model in 4-bit precision.
 
 *Important*
@@ -607,7 +804,7 @@ prompt_str = "Provide a clear, concise, and intuitive description of AI for begi
 max_new_tokens = 512
 ```
 
-8. Perform Inference
+12. Perform Inference
 Finally, we can run the model.
 
 ```bash
@@ -649,12 +846,12 @@ with torch.inference_mode():
     print(prompt)
 ```
 
-9. Print the model's response
+13. Print the model's response
 ```bash
 print('-'*20, 'Response (skip_special_tokens=False)', '-'*20)
 ```
 
-10. Extract the actual response from the output string
+14. Extract the actual response from the output string
 This assumes the response is between the last '<|end_header_id|>\n\n' and '<|eot_id|>'
 ```bash
 response = output_str.split('<|end_header_id|>\n\n')[-1].split('<|eot_id|>')[0]
